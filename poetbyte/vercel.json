@@ -6,8 +6,8 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "NEXTAUTH_URL": "@nextauth_url"
+    "MONGODB_URI": "@MONGODB_URI",
+    "NEXTAUTH_SECRET": "@NEXTAUTH_SECRET",
+    "NEXTAUTH_URL": "@NEXTAUTH_URL"
   }
 }
