@@ -17,6 +17,7 @@ export default function AdminDashboard() {
   const [editingDraft, setEditingDraft] = useState<{ title: string; content: string; author?: string }>({ title: '', content: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isDeletingFeedback, setIsDeletingFeedback] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -64,6 +65,32 @@ export default function AdminDashboard() {
       fetchFeedbacks();
     }
   }, [activeTab, selectedPoemId]);
+
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    if (!confirm('Are you sure you want to delete this feedback?')) {
+      return;
+    }
+    
+    setIsDeletingFeedback(true);
+    
+    try {
+      const response = await fetch(`/api/admin/feedbacks/${feedbackId}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        // Remove the deleted feedback from the state
+        setFeedbacks(prev => prev.filter(feedback => feedback._id !== feedbackId));
+      } else {
+        alert('Failed to delete feedback');
+      }
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
+      alert('An error occurred while deleting feedback');
+    } finally {
+      setIsDeletingFeedback(false);
+    }
+  };
 
   const handlePoemChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -333,8 +360,18 @@ export default function AdminDashboard() {
                             <p className="text-gray-600 text-sm">{feedback.phone}</p>
                           )}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {new Date(feedback.createdAt).toLocaleDateString()}
+                        <div className="flex items-center space-x-2">
+                          <div className="text-sm text-gray-500">
+                            {new Date(feedback.createdAt).toLocaleDateString()}
+                          </div>
+                          <button
+                            onClick={() => handleDeleteFeedback(feedback._id)}
+                            disabled={isDeletingFeedback}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            title="Delete feedback"
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
                       <p className="mt-3 text-gray-700">{feedback.message}</p>
