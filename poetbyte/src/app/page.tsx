@@ -10,10 +10,12 @@ async function getPoems() {
     const url = new URL('/api/poems', baseUrl);
     
     const res = await fetch(url.toString(), { 
-      next: { revalidate } // Use the revalidate value from above
+      next: { revalidate }, // Use the revalidate value from above
+      cache: 'no-store' // Ensure fresh data on each request
     });
 
     if (!res.ok) {
+      console.error('Failed to fetch poems with status:', res.status);
       throw new Error('Failed to fetch poems');
     }
 

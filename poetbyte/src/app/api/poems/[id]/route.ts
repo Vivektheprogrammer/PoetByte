@@ -20,23 +20,6 @@ export async function GET(
     }
 
     await connectToDatabase();
-    
-    // Handle case where we're in static generation and DB might not be available
-    if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
-      try {
-        const poem = await Poem.findById(id);
-        if (!poem) {
-          return NextResponse.json({ error: 'Poem not found' }, { status: 404 });
-        }
-        return NextResponse.json(poem);
-      } catch (dbError) {
-        console.warn('DB query failed during static generation, returning empty object', dbError);
-        // Return empty object instead of error for static generation
-        return NextResponse.json({});
-      }
-    }
-    
-    // Normal operation
     const poem = await Poem.findById(id);
 
     if (!poem) {
@@ -46,13 +29,6 @@ export async function GET(
     return NextResponse.json(poem);
   } catch (error) {
     console.error('Error fetching poem:', error);
-    
-    // During static generation, return empty object instead of error
-    if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
-      console.warn('Returning empty object for static generation');
-      return NextResponse.json({});
-    }
-    
     return NextResponse.json({ error: 'Failed to fetch poem' }, { status: 500 });
   }
 }

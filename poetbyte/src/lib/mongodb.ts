@@ -16,14 +16,7 @@ async function connectToDatabase(): Promise<typeof mongoose> {
   // Check if we have a MongoDB URI
   if (!MONGODB_URI) {
     console.warn('MONGODB_URI environment variable is not defined');
-    
-    // During static build, return mongoose without connecting
-    if (process.env.NODE_ENV === 'production') {
-      console.log('Running in production build - skipping DB connection for static generation');
-      return mongoose;
-    } else {
-      throw new Error('Please define the MONGODB_URI environment variable');
-    }
+    throw new Error('Please define the MONGODB_URI environment variable');
   }
 
   try {
@@ -38,13 +31,6 @@ async function connectToDatabase(): Promise<typeof mongoose> {
     return mongoose;
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    
-    // During static build, return mongoose without connecting
-    if (process.env.NODE_ENV === 'production') {
-      console.log('Running in production build - continuing despite DB connection error');
-      return mongoose;
-    }
-    
     throw error;
   }
 }
