@@ -14,6 +14,13 @@ const nextConfig = {
     config.experiments = { ...config.experiments, topLevelAwait: true };
     return config;
   },
+  // Configure static generation
+  output: 'standalone',
+  // Disable strict mode for dynamic server usage errors
+  experimental: {
+    serverComponentsExternalPackages: ['mongoose'],
+    missingSuspenseWithCSRBailout: false,
+  },
 };
 
 module.exports = nextConfig;
