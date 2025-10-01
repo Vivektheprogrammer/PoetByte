@@ -1,12 +1,17 @@
-export const dynamic = 'force-dynamic'; // This makes the page dynamic
-
 import Link from 'next/link';
+
+// Configure the page to be statically generated but revalidated every 60 seconds
+export const revalidate = 60;
 
 async function getPoems() {
   try {
+    // Use absolute URL with proper configuration for static generation
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://poetbyte.vercel.app';
-
-    const res = await fetch(`${baseUrl}/api/poems`, { cache: 'no-store' });
+    const url = new URL('/api/poems', baseUrl);
+    
+    const res = await fetch(url.toString(), { 
+      next: { revalidate } // Use the revalidate value from above
+    });
 
     if (!res.ok) {
       throw new Error('Failed to fetch poems');
@@ -15,7 +20,7 @@ async function getPoems() {
     return res.json();
   } catch (error) {
     console.error('Error fetching poems:', error);
-    return { poems: [] };
+    return [];
   }
 }
 
