@@ -10,8 +10,7 @@ async function getPoems() {
     const url = new URL('/api/poems', baseUrl);
     
     const res = await fetch(url.toString(), { 
-      next: { revalidate }, // Use the revalidate value from above
-      cache: 'no-store' // Ensure fresh data on each request
+      next: { revalidate } // Use the revalidate value from above
     });
 
     if (!res.ok) {

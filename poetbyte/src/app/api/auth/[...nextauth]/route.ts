@@ -11,9 +11,13 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // This is a simple hardcoded admin user
-        // In a real app, you would check against a database
-        if (credentials?.username === "admin" && credentials?.password === "poetbyte123") {
+        const adminUsername = process.env.ADMIN_USERNAME ?? "";
+        const adminPassword = process.env.ADMIN_PASSWORD ?? "";
+
+        if (
+          credentials?.username === adminUsername &&
+          credentials?.password === adminPassword
+        ) {
           return { id: "1", name: "Admin", email: "admin@example.com" };
         }
         return null;
