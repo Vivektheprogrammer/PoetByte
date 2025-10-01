@@ -1,20 +1,20 @@
+export const dynamic = 'force-dynamic'; // This makes the page dynamic
+
 import Link from 'next/link';
 
 async function getPoems() {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://poetbyte.vercel.app';
 
-    const res = await fetch(`${baseUrl}/api/poems`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${baseUrl}/api/poems`, { cache: 'no-store' });
 
     if (!res.ok) {
-      throw new Error("Failed to fetch poems");
+      throw new Error('Failed to fetch poems');
     }
+
     return res.json();
   } catch (error) {
-    console.error("Error fetching poems:", error);
+    console.error('Error fetching poems:', error);
     return { poems: [] };
   }
 }
@@ -40,14 +40,14 @@ export default async function Home() {
                 {poem.title}
               </h2>
               <div className="mb-2 text-sm">
-                <span className="text-[var(--accent)]">By</span>{" "}
+                <span className="text-[var(--accent)]">By</span>{' '}
                 <span className="text-[var(--accent)] font-medium">
-                  {poem.author || "Unknown"}
+                  {poem.author || 'Unknown'}
                 </span>
               </div>
               <p className="mb-4 text-gray-600">
                 {poem.content.substring(0, 150)}
-                {poem.content.length > 150 ? "..." : ""}
+                {poem.content.length > 150 ? '...' : ''}
               </p>
               <Link
                 href={`/poems/${poem._id}`}
