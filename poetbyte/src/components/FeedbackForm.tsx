@@ -111,7 +111,7 @@ export default function FeedbackForm({ poemId }: FeedbackFormProps) {
           />
         </div>
         
-        <div className="mb-4 animate-slide-in" style={{ animationDelay: '0.2s' }}>
+        <div className="mb-4 animate-slide-in" style={{ animationDelay: '0.2s', position: 'relative' }}>
           <label htmlFor="email" className="block text-sm font-medium mb-1">
             Email (optional)
           </label>

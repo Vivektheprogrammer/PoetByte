@@ -1,14 +1,17 @@
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
 import FeedbackForm from '@/components/FeedbackForm';
 
 async function getPoem(id: string) {
   try {
-    const hdrs = await headers();
-    const host = hdrs.get('host');
-    const proto = hdrs.get('x-forwarded-proto') ?? 'http';
-    const url = `${proto}://${host}/api/poems/${id}`;
-    const res = await fetch(url, { cache: 'no-store' });
+    // Use absolute URL with origin to avoid URL parsing errors
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const url = new URL(`/api/poems/${id}`, baseUrl);
+    
+    const res = await fetch(url.toString(), { 
+      cache: 'no-store',
+      // Add next.js fetch options to ensure proper handling
+      next: { revalidate: 0 }
+    });
     if (!res.ok) {
       return null;
     }
