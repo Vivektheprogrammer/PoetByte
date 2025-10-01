@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IFeedbackDocument extends Document {
   poemId: mongoose.Types.ObjectId;
@@ -10,7 +10,7 @@ export interface IFeedbackDocument extends Document {
   createdAt: Date;
 }
 
-const FeedbackSchema: Schema = new Schema({
+const FeedbackSchema = new Schema<IFeedbackDocument>({
   poemId: { type: Schema.Types.ObjectId, ref: 'Poem', required: true },
   name: { type: String },
   email: { type: String },
@@ -20,4 +20,8 @@ const FeedbackSchema: Schema = new Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.models.Feedback || mongoose.model<IFeedbackDocument>('Feedback', FeedbackSchema);
+// Check if the model exists before creating a new one
+const Feedback: Model<IFeedbackDocument> = mongoose.models.Feedback as Model<IFeedbackDocument> || 
+  mongoose.model<IFeedbackDocument>('Feedback', FeedbackSchema);
+
+export default Feedback;

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Button from './ui/Button';
 
 interface FeedbackFormProps {
   poemId: string;

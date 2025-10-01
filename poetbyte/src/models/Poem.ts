@@ -1,17 +1,21 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IPoemDocument extends Document {
   title: string;
   content: string;
-  author?: string;
+  author: string;
   createdAt: Date;
 }
 
-const PoemSchema: Schema = new Schema({
+const PoemSchema = new Schema<IPoemDocument>({
   title: { type: String, required: true },
   content: { type: String, required: true },
-  author: { type: String, default: '' },
+  author: { type: String, default: 'Anonymous' },
   createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.models.Poem || mongoose.model<IPoemDocument>('Poem', PoemSchema);
+// Check if the model exists before creating a new one
+const Poem: Model<IPoemDocument> = mongoose.models.Poem as Model<IPoemDocument> || 
+  mongoose.model<IPoemDocument>('Poem', PoemSchema);
+
+export default Poem;

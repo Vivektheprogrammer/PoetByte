@@ -1,0 +1,19 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Updated Turbopack configuration for Next.js 15+
+  turbopack: {
+    // Turbopack configuration options
+  },
+  // Enable static image imports
+  images: {
+    domains: ['via.placeholder.com'],
+  },
+  // Ensure MongoDB ObjectId serialization works properly
+  webpack: (config) => {
+    // This helps ensure proper serialization of MongoDB ObjectIds
+    config.experiments = { ...config.experiments, topLevelAwait: true };
+    return config;
+  },
+};
+
+module.exports = nextConfig;

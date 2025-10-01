@@ -8,6 +8,7 @@ export async function GET() {
     const poems = await Poem.find({}).sort({ createdAt: -1 });
     return NextResponse.json(poems);
   } catch (error) {
+    console.error('Error fetching poems:', error);
     return NextResponse.json({ error: 'Failed to fetch poems' }, { status: 500 });
   }
 }
@@ -21,11 +22,16 @@ export async function POST(request: NextRequest) {
     }
     
     await connectToDatabase();
-    const poem = new Poem({ title, content, author });
+    const poem = new Poem({ 
+      title, 
+      content, 
+      author: author || 'Anonymous' 
+    });
     await poem.save();
     
     return NextResponse.json(poem, { status: 201 });
   } catch (error) {
+    console.error('Error creating poem:', error);
     return NextResponse.json({ error: 'Failed to create poem' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import Feedback from '@/models/Feedback';
+import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,9 +10,9 @@ export async function GET(request: NextRequest) {
     
     await connectToDatabase();
     
-    let query = {};
-    if (poemId) {
-      query = { poemId };
+    let query: Record<string, any> = {};
+    if (poemId && mongoose.Types.ObjectId.isValid(poemId)) {
+      query = { poemId: new mongoose.Types.ObjectId(poemId) };
     }
     
     const feedbacks = await Feedback.find(query)
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(feedbacks);
   } catch (error) {
+    console.error('Error fetching feedbacks:', error);
     return NextResponse.json({ error: 'Failed to fetch feedbacks' }, { status: 500 });
   }
 }
