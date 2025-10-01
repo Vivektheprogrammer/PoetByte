@@ -27,9 +27,18 @@ export default function RootLayout({
               {children}
             </PageTransition>
           </main>
-          <footer className="bg-gray-800 text-white py-6">
+          <footer className="py-8">
             <div className="container mx-auto px-4 text-center">
-              <p>© {new Date().getFullYear()} PoetByte. All rights reserved.</p>
+              <p>
+                <a
+                  href="https://www.linkedin.com/in/vivek-r-626b16217"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-lg font-semibold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent hover:opacity-90 transition-opacity"
+                >
+                  Poetry in the front, Code in the back  Crafted by Vivek R
+                </a>
+              </p>
             </div>
           </footer>
         </Providers>
