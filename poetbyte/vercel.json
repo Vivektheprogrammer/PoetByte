@@ -4,10 +4,5 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["iad1"],
-  "env": {
-    "MONGODB_URI": "mongodb+srv://vivekr:mVUlYXEbtlucmVIS@cluster0.y5f8ocz.mongodb.net/poetbyte?retryWrites=true&w=majority&appName=Cluster0",
-    "NEXTAUTH_SECRET": "abd627cd717e15c9828dc8fc17b8665ab63e184e977587259af1cbe33e50fa9c",
-    "NEXTAUTH_URL": "https://poetbyte.vercel.app"
-  }
+  "regions": ["iad1"]
 }
