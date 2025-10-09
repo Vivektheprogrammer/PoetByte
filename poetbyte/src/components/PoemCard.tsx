@@ -17,8 +17,9 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
   const closeModal = () => setIsModalOpen(false);
   const sharePoem = async () => {
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const url = `${origin}/poems/${poem._id}`;
+      const envBase = typeof process !== 'undefined' ? (process as any).env?.NEXT_PUBLIC_BASE_URL : undefined;
+      const origin = envBase || (typeof window !== 'undefined' ? window.location.origin : '');
+      const url = `${origin}/?poem=${poem._id}`;
       const shareData = {
         title: poem.title || 'Poem',
         text: `Check out this poem${poem.author ? ' by ' + poem.author : ''}: ${poem.title}`,
@@ -87,7 +88,7 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
           <div className="mt-auto flex items-center justify-between">
             <button
               type="button"
-              onClick={sharePoem}
+              onClick={(e) => { e.stopPropagation(); void sharePoem(); }}
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               aria-label="Share poem"
             >

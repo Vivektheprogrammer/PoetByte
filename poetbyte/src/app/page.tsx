@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import PoemCard from '@/components/PoemCard';
+import PoemDeepLink from '@/components/PoemDeepLink';
 
 // Ensure fresh data; likes should reflect quickly
 export const dynamic = 'force-dynamic';
@@ -63,6 +64,7 @@ export default async function Home() {
           </div>
         </div>
       )}
+      <PoemDeepLink />
     </div>
   );
 }
