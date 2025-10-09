@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import PoemModal from './PoemModal';
-import { FaArrowRight } from 'react-icons/fa';
+import { FaArrowRight, FaShareAlt } from 'react-icons/fa';
 
 interface PoemCardProps {
   poem: any;
@@ -15,6 +15,38 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
   
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const sharePoem = async () => {
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const url = `${origin}/poems/${poem._id}`;
+      const shareData = {
+        title: poem.title || 'Poem',
+        text: `Check out this poem${poem.author ? ' by ' + poem.author : ''}: ${poem.title}`,
+        url,
+      } as ShareData;
+
+      // Prefer native share if available
+      if (typeof navigator !== 'undefined' && (navigator as any).share) {
+        await (navigator as any).share(shareData);
+        return;
+      }
+
+      // Fallback: copy link to clipboard
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard');
+        return;
+      }
+
+      // Last resort: open in new tab
+      if (typeof window !== 'undefined') {
+        window.open(url, '_blank');
+      }
+    } catch (e) {
+      console.error('Share failed', e);
+      alert('Unable to share. You can copy the URL from the address bar.');
+    }
+  };
   
   // Get a preview of the poem content
   const contentPreview = poem.content.length > 150
@@ -52,14 +84,25 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
           <p className="mb-4 text-gray-600 dark:text-gray-300 flex-grow">
             {contentPreview}
           </p>
-          <div className="inline-flex items-center mt-auto text-[var(--primary)] font-medium group">
-            <span className="mr-2">Read More</span>
-            <motion.div
-              whileHover={{ x: 5 }}
-              transition={{ duration: 0.3 }}
+          <div className="mt-auto flex items-center justify-between">
+            <button
+              type="button"
+              onClick={sharePoem}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Share poem"
             >
-              <FaArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-300" />
-            </motion.div>
+              <FaShareAlt size={14} />
+              <span className="text-sm">Share</span>
+            </button>
+            <div className="inline-flex items-center text-[var(--primary)] font-medium group">
+              <span className="mr-2">Read More</span>
+              <motion.div
+                whileHover={{ x: 5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <FaArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-300" />
+              </motion.div>
+            </div>
           </div>
         </div>
       </motion.div>
