@@ -1,4 +1,7 @@
 import { notFound } from 'next/navigation';
+
+// Ensure this route is dynamic for fresh likes/content
+export const dynamic = 'force-dynamic';
 import FeedbackForm from '@/components/FeedbackForm';
 
 async function getPoem(id: string) {

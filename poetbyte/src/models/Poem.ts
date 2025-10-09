@@ -5,13 +5,15 @@ export interface IPoemDocument extends Document {
   content: string;
   author: string;
   createdAt: Date;
+  likes?: number;
 }
 
 const PoemSchema = new Schema<IPoemDocument>({
   title: { type: String, required: true },
   content: { type: String, required: true },
   author: { type: String, default: 'Anonymous' },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  likes: { type: Number, default: 0 }
 });
 
 // Check if the model exists before creating a new one

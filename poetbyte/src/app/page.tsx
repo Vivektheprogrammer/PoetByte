@@ -1,7 +1,8 @@
 import Link from 'next/link';
+import PoemCard from '@/components/PoemCard';
 
-// Configure the page to be statically generated but revalidated every 60 seconds
-export const revalidate = 60;
+// Ensure fresh data; likes should reflect quickly
+export const dynamic = 'force-dynamic';
 
 async function getPoems() {
   try {
@@ -9,8 +10,8 @@ async function getPoems() {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://poetbyte.vercel.app';
     const url = new URL('/api/poems', baseUrl);
     
-    const res = await fetch(url.toString(), { 
-      next: { revalidate } // Use the revalidate value from above
+    const res = await fetch(url.toString(), {
+      cache: 'no-store'
     });
 
     if (!res.ok) {
@@ -37,31 +38,11 @@ export default async function Home() {
       {Array.isArray(poems) && poems.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {poems.map((poem: any, index: number) => (
-            <div
-              key={poem._id}
-              className="card p-6 hover-lift stagger-item"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <h2 className="text-xl font-semibold mb-1 text-[var(--primary)]">
-                {poem.title}
-              </h2>
-              <div className="mb-2 text-sm">
-                <span className="text-[var(--accent)]">By</span>{' '}
-                <span className="text-[var(--accent)] font-medium">
-                  {poem.author || 'Unknown'}
-                </span>
-              </div>
-              <p className="mb-4 text-gray-600">
-                {poem.content.substring(0, 150)}
-                {poem.content.length > 150 ? '...' : ''}
-              </p>
-              <Link
-                href={`/poems/${poem._id}`}
-                className="inline-block mt-2 text-[var(--primary)] hover:text-[var(--primary-dark)] font-medium transition-all duration-200"
-              >
-                Read More →
-              </Link>
-            </div>
+            <PoemCard 
+              key={poem._id} 
+              poem={poem} 
+              index={index} 
+            />
           ))}
         </div>
       ) : (

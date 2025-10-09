@@ -305,8 +305,14 @@ export default function AdminDashboard() {
                   {poem.author && (
                     <div className="mt-1 text-sm text-indigo-600">By {poem.author}</div>
                   )}
-                          <div className="mt-2 text-sm text-gray-500">
-                            Posted on {new Date(poem.createdAt).toLocaleDateString()}
+                          <div className="mt-2 text-sm text-gray-500 flex items-center gap-3">
+                            <span>Posted on {new Date(poem.createdAt).toLocaleDateString()}</span>
+                            <span className="inline-flex items-center gap-1 text-pink-600">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                <path d="M11.645 20.91l-.007-.003-.022-.009a15.247 15.247 0 01-.383-.173 25.18 25.18 0 01-4.244-2.673C4.688 16.267 2.25 13.433 2.25 9.75 2.25 7.28 4.28 5.25 6.75 5.25c1.503 0 2.93.707 3.878 1.902a.75.75 0 001.144 0A4.873 4.873 0 0115.65 5.25c2.47 0 4.6 2.03 4.6 4.5 0 3.682-2.438 6.517-4.739 8.302a25.175 25.175 0 01-4.244 2.673 15.247 15.247 0 01-.383.173l-.022.009-.007.003-.003.001a.75.75 0 01-.592 0l-.003-.001z" />
+                              </svg>
+                              <span className="font-medium">{poem.likes ?? 0}</span>
+                            </span>
                           </div>
                           <div className="mt-3 flex gap-2">
                             <Button variant="outline" onClick={() => startEditPoem(poem)}>Edit</Button>
