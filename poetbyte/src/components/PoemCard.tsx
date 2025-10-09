@@ -28,8 +28,18 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
 
       // Prefer native share if available
       if (typeof navigator !== 'undefined' && (navigator as any).share) {
-        await (navigator as any).share(shareData);
-        return;
+        try {
+          const canShare = typeof (navigator as any).canShare === 'function' ? (navigator as any).canShare(shareData) : true;
+          if (canShare) {
+            await (navigator as any).share(shareData);
+            return; // shared successfully
+          }
+        } catch (err: any) {
+          // If user cancels share, silently stop
+          const name = err?.name || '';
+          if (name === 'AbortError' || name === 'NotAllowedError') return;
+          // Otherwise fall through to clipboard fallback
+        }
       }
 
       // Fallback: copy link to clipboard
@@ -45,7 +55,12 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
       }
     } catch (e) {
       console.error('Share failed', e);
-      alert('Unable to share. You can copy the URL from the address bar.');
+      // As a final fallback, try a prompt for copying
+      if (typeof window !== 'undefined') {
+        const envBase = (process as any).env?.NEXT_PUBLIC_BASE_URL || window.location.origin;
+        const url = `${envBase}/?poem=${poem._id}`;
+        window.prompt('Copy this link:', url);
+      }
     }
   };
   
