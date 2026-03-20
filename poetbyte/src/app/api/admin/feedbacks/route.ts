@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     
     const feedbacks = await Feedback.find(query)
       .sort({ createdAt: -1 })
-      .populate('poemId', 'title');
+      .populate('poemId', 'title content type');
     
     return NextResponse.json(feedbacks);
   } catch (error) {

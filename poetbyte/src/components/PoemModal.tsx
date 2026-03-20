@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import FeedbackForm from './FeedbackForm';
-import { FaHeart, FaRegHeart, FaTimes } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaTimes, FaQuoteLeft } from 'react-icons/fa';
 import { MdFeedback } from 'react-icons/md';
 
 interface PoemModalProps {
@@ -113,43 +113,81 @@ export default function PoemModal({ poem, isOpen, onClose }: PoemModalProps) {
               </button>
               
               <div className="mb-8">
-                <motion.h1 
-                  className="text-3xl font-bold mb-4 text-[var(--primary)]"
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1, duration: 0.4 }}
-                >
-                  {poem.title}
-                </motion.h1>
-                
-                <motion.div 
-                  className="text-sm mb-6"
-                  initial={{ y: -10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.4 }}
-                >
-                  By <span className="text-[var(--accent)] font-medium">{poem.author || 'Unknown'}</span>
-                </motion.div>
-                
-                <div className="prose dark:prose-invert max-w-none mb-8">
-                  {poem.content.split('\n').map((paragraph: string, index: number) => (
-                    <motion.p 
-                      key={index} 
-                      className="mb-4 text-gray-800 dark:text-gray-200" 
+                {poem.type === 'quote' ? (
+                  <div className="py-6">
+                    <motion.div 
+                      className="flex items-center gap-2 mb-6 text-amber-500 dark:text-amber-400"
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.1, duration: 0.4 }}
+                    >
+                      <FaQuoteLeft size={28} />
+                    </motion.div>
+                    <motion.div 
+                      className="text-xl font-serif italic text-gray-800 dark:text-gray-100 leading-relaxed max-w-2xl mx-auto px-4"
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2, duration: 0.4 }}
+                    >
+                      <div className="whitespace-pre-line space-y-4">
+                        {poem.content.split(/\n\n+/).map((para: string, i: number) => (
+                          <p key={i}>{para}</p>
+                        ))}
+                      </div>
+                    </motion.div>
+                    <motion.div 
+                      className="mt-6 text-right text-lg italic"
                       initial={{ y: 10, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 + (index * 0.05), duration: 0.4 }}
+                      transition={{ delay: 0.3, duration: 0.4 }}
                     >
-                      {paragraph}
-                    </motion.p>
-                  ))}
-                </div>
+                      <span className="text-[var(--accent)] font-medium">~ {poem.author || 'Unknown'}</span>
+                    </motion.div>
+                  </div>
+                ) : (
+                  <>
+                    <motion.h1 
+                      className="text-3xl font-bold mb-4 text-[var(--primary)]"
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.1, duration: 0.4 }}
+                    >
+                      {poem.title}
+                    </motion.h1>
+                    
+                    <motion.div 
+                      className="text-sm mb-6"
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2, duration: 0.4 }}
+                    >
+                      By <span className="text-[var(--accent)] font-medium">{poem.author || 'Unknown'}</span>
+                    </motion.div>
+                    
+                    <div className="space-y-8 mb-8 max-w-none">
+                      {poem.content
+                        .split(/\n\n+/)
+                        .filter((stanza: string) => stanza.trim() !== '')
+                        .map((stanza: string, index: number) => (
+                          <motion.div
+                            key={index}
+                            className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-relaxed"
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 + (index * 0.1), duration: 0.4 }}
+                          >
+                            {stanza}
+                          </motion.div>
+                        ))}
+                    </div>
+                  </>
+                )}
                 
                 <motion.div 
                   className="text-sm text-gray-500 dark:text-gray-400 mb-6"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.4 }}
+                  transition={{ delay: 0.4, duration: 0.4 }}
                 >
                   Posted on {new Date(poem.createdAt).toLocaleDateString()}
                 </motion.div>

@@ -1,17 +1,19 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IPoemDocument extends Document {
-  title: string;
+  title?: string;
   content: string;
   author: string;
+  type: 'poem' | 'quote';
   createdAt: Date;
   likes?: number;
 }
 
 const PoemSchema = new Schema<IPoemDocument>({
-  title: { type: String, required: true },
+  title: { type: String, required: false },
   content: { type: String, required: true },
   author: { type: String, default: 'Anonymous' },
+  type: { type: String, enum: ['poem', 'quote'], default: 'poem' },
   createdAt: { type: Date, default: Date.now },
   likes: { type: Number, default: 0 }
 });

@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.font-serif {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -26,12 +36,6 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-}
-
 @layer components {
   .btn {
     @apply px-4 py-2 rounded-md font-medium transition-all duration-200;
@@ -41,20 +45,18 @@ body {
     @apply bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg;
   }
   
-.card {
-  @apply bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-sm hover:shadow-md transition-all duration-300;
+  .card {
+    @apply bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .text-gray-500 { color: var(--muted); }
+  .dark .text-gray-500 { color: var(--muted); }
+  .text-gray-600 { color: var(--muted); }
+  .dark .text-gray-600 { color: var(--muted); }
+  .text-gray-700 { color: var(--foreground); }
+  .dark .text-gray-700 { color: var(--foreground); }
 }
 
-/* Improve gray text contrast (darker in light mode, lighter in dark mode) */
-.text-gray-500 { color: var(--muted); }
-.dark .text-gray-500 { color: var(--muted); }
-.text-gray-600 { color: var(--muted); }
-.dark .text-gray-600 { color: var(--muted); }
-.text-gray-700 { color: var(--foreground); }
-.dark .text-gray-700 { color: var(--foreground); }
-}
-
-/* Custom animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -129,7 +131,6 @@ body {
   }
 }
 
-/* Animation utility classes */
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
 }
@@ -150,21 +151,18 @@ body {
   animation: backdropBlur 0.5s ease-out forwards;
 }
 
-/* Hover effects */
 .hover-lift {
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s ease;
 }
 
 .hover-lift:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
 }
 
 .animate-pulse {
   animation: pulse 2s infinite;
 }
 
-/* Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -174,7 +172,6 @@ body {
   }
 }
 
-/* Staggered animation for lists */
 .stagger-item {
   opacity: 0;
   transform: translateY(10px);
@@ -187,12 +184,3 @@ body {
 .stagger-item:nth-child(4) { animation-delay: 0.4s; }
 .stagger-item:nth-child(5) { animation-delay: 0.5s; }
 .stagger-item:nth-child(n+6) { animation-delay: 0.6s; }
-
-/* Hover effects */
-.hover-lift {
-  transition: transform 0.3s ease;
-}
-
-.hover-lift:hover {
-  transform: translateY(-5px);
-}

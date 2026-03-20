@@ -12,9 +12,9 @@ export default function AdminDashboard() {
   const [poems, setPoems] = useState<any[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
-  const [newPoem, setNewPoem] = useState({ title: '', content: '', author: '' });
+  const [newPoem, setNewPoem] = useState({ title: '', content: '', author: '', type: 'poem' as 'poem' | 'quote' });
   const [editingPoemId, setEditingPoemId] = useState<string | null>(null);
-  const [editingDraft, setEditingDraft] = useState<{ title: string; content: string; author?: string }>({ title: '', content: '' });
+  const [editingDraft, setEditingDraft] = useState<{ title: string; content: string; author?: string; type?: 'poem' | 'quote' }>({ title: '', content: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isDeletingFeedback, setIsDeletingFeedback] = useState(false);
@@ -100,26 +100,37 @@ export default function AdminDashboard() {
   const handlePoemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newPoem.title || !newPoem.content) {
+    if (newPoem.type === 'poem' && !newPoem.title) {
+      return;
+    }
+    
+    if (!newPoem.content) {
       return;
     }
     
     setIsSubmitting(true);
     
     try {
+      const payload = {
+        content: newPoem.content,
+        author: newPoem.author,
+        type: newPoem.type,
+        ...(newPoem.type === 'poem' && { title: newPoem.title }),
+      };
+      
       const response = await fetch('/api/poems', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newPoem),
+        body: JSON.stringify(payload),
       });
       
       if (response.ok) {
         setSubmitStatus('success');
         const createdPoem = await response.json();
         setPoems((prev: any[]) => [createdPoem, ...prev]);
-        setNewPoem({ title: '', content: '', author: '' });
+        setNewPoem({ title: '', content: '', author: '', type: 'poem' });
       } else {
         setSubmitStatus('error');
       }
@@ -128,7 +139,6 @@ export default function AdminDashboard() {
     } finally {
       setIsSubmitting(false);
       
-      // Reset status after 3 seconds
       setTimeout(() => {
         setSubmitStatus('idle');
       }, 3000);
@@ -137,12 +147,12 @@ export default function AdminDashboard() {
 
   const startEditPoem = (poem: any) => {
     setEditingPoemId(poem._id);
-    setEditingDraft({ title: poem.title, content: poem.content, author: poem.author || '' });
+    setEditingDraft({ title: poem.title, content: poem.content, author: poem.author || '', type: poem.type || 'poem' });
   };
 
   const cancelEditPoem = () => {
     setEditingPoemId(null);
-    setEditingDraft({ title: '', content: '', author: '' });
+    setEditingDraft({ title: '', content: '', author: '', type: 'poem' });
   };
 
   const saveEditPoem = async () => {
@@ -182,18 +192,18 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-gray-700">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-700 dark:text-gray-200">Admin Dashboard</h1>
       
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div className="flex border-b">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-8 border border-gray-200 dark:border-gray-700">
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button
-            className={`px-4 py-3 font-medium ${activeTab === 'poems' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+            className={`px-4 py-3 font-medium ${activeTab === 'poems' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
             onClick={() => setActiveTab('poems')}
           >
             Manage Poems
           </button>
           <button
-            className={`px-4 py-3 font-medium ${activeTab === 'feedback' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+            className={`px-4 py-3 font-medium ${activeTab === 'feedback' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
             onClick={() => setActiveTab('feedback')}
           >
             View Feedback
@@ -203,25 +213,43 @@ export default function AdminDashboard() {
         <div className="p-6">
           {activeTab === 'poems' && (
             <div>
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Add New Poem</h2>
+              <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Add New Poem</h2>
               <form onSubmit={handlePoemSubmit} className="space-y-4 mb-8">
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                    Title
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Type
                   </label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={newPoem.title}
-                    onChange={handlePoemChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800"
-                  />
+                  <select
+                    id="type"
+                    name="type"
+                    value={newPoem.type}
+                    onChange={(e) => setNewPoem(prev => ({ ...prev, type: e.target.value as 'poem' | 'quote', title: '' }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="poem">Poem</option>
+                    <option value="quote">Quote</option>
+                  </select>
                 </div>
+
+                {newPoem.type === 'poem' && (
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={newPoem.title}
+                      onChange={handlePoemChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                )}
                 
                 <div>
-                  <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Content
                   </label>
                   <textarea
@@ -231,12 +259,13 @@ export default function AdminDashboard() {
                     value={newPoem.content}
                     onChange={handlePoemChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800"
+                    placeholder={newPoem.type === 'quote' ? 'Enter your quote...' : 'Enter poem content...'}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="author" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Author
                   </label>
                   <input
@@ -245,53 +274,65 @@ export default function AdminDashboard() {
                     name="author"
                     value={newPoem.author}
                     onChange={handlePoemChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800"
+                    placeholder={newPoem.type === 'quote' ? 'Quote author...' : 'Poem author...'}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <Button
                     type="submit"
-                    disabled={isSubmitting || !newPoem.title || !newPoem.content}
+                    disabled={isSubmitting || (!newPoem.title && newPoem.type === 'poem') || !newPoem.content}
                   >
-                    {isSubmitting ? 'Adding...' : 'Add Poem'}
+                    {isSubmitting ? 'Adding...' : newPoem.type === 'quote' ? 'Add Quote' : 'Add Poem'}
                   </Button>
                   
                   {submitStatus === 'success' && (
-                    <p className="text-green-600 animate-fade-in">Poem added successfully!</p>
+                    <p className="text-green-600 dark:text-green-400 animate-fade-in">Poem added successfully!</p>
                   )}
                   
                   {submitStatus === 'error' && (
-                    <p className="text-red-600 animate-fade-in">Failed to add poem. Please try again.</p>
+                    <p className="text-red-600 dark:text-red-400 animate-fade-in">Failed to add poem. Please try again.</p>
                   )}
                 </div>
               </form>
               
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Existing Poems</h2>
+              <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Existing Poems</h2>
               {poems.length > 0 ? (
                 <div className="space-y-4">
                   {poems.map((poem: any) => (
-                    <div key={poem._id} className="border rounded-md p-4 hover:bg-gray-50">
+                    <div key={poem._id} className="border border-gray-200 dark:border-gray-700 rounded-md p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
                       {editingPoemId === poem._id ? (
                         <div className="space-y-3">
-                          <input
-                            type="text"
-                            value={editingDraft.title}
-                            onChange={(e) => setEditingDraft(d => ({ ...d, title: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
-                          />
+                          <select
+                            value={editingDraft.type || 'poem'}
+                            onChange={(e) => setEditingDraft(d => ({ ...d, type: e.target.value as 'poem' | 'quote' }))}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          >
+                            <option value="poem">Poem</option>
+                            <option value="quote">Quote</option>
+                          </select>
+                          {editingDraft.type === 'poem' && (
+                            <input
+                              type="text"
+                              placeholder="Title"
+                              value={editingDraft.title || ''}
+                              onChange={(e) => setEditingDraft(d => ({ ...d, title: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            />
+                          )}
                           <textarea
                             rows={4}
                             value={editingDraft.content}
                             onChange={(e) => setEditingDraft(d => ({ ...d, content: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           />
                           <input
                             type="text"
                             placeholder="Author"
                             value={editingDraft.author || ''}
                             onChange={(e) => setEditingDraft(d => ({ ...d, author: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           />
                           <div className="flex gap-2">
                             <Button onClick={saveEditPoem}>Save</Button>
@@ -300,14 +341,25 @@ export default function AdminDashboard() {
                         </div>
                       ) : (
                         <>
-                          <h3 className="text-lg font-medium text-gray-800">{poem.title}</h3>
-                  <p className="text-gray-600 mt-1 line-clamp-2">{poem.content}</p>
-                  {poem.author && (
-                    <div className="mt-1 text-sm text-indigo-600">By {poem.author}</div>
-                  )}
-                          <div className="mt-2 text-sm text-gray-500 flex items-center gap-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`px-2 py-0.5 text-xs rounded-full ${
+                              poem.type === 'quote' 
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                                : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
+                            }`}>
+                              {poem.type === 'quote' ? 'Quote' : 'Poem'}
+                            </span>
+                          </div>
+                          {poem.title && (
+                            <h3 className="text-lg font-medium text-gray-800 dark:text-white">{poem.title}</h3>
+                          )}
+                          <p className="text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">{poem.content}</p>
+                          {poem.author && (
+                            <div className="mt-1 text-sm text-indigo-600 dark:text-indigo-400">By {poem.author}</div>
+                          )}
+                          <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3">
                             <span>Posted on {new Date(poem.createdAt).toLocaleDateString()}</span>
-                            <span className="inline-flex items-center gap-1 text-pink-600">
+                            <span className="inline-flex items-center gap-1 text-pink-600 dark:text-pink-400">
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                                 <path d="M11.645 20.91l-.007-.003-.022-.009a15.247 15.247 0 01-.383-.173 25.18 25.18 0 01-4.244-2.673C4.688 16.267 2.25 13.433 2.25 9.75 2.25 7.28 4.28 5.25 6.75 5.25c1.503 0 2.93.707 3.878 1.902a.75.75 0 001.144 0A4.873 4.873 0 0115.65 5.25c2.47 0 4.6 2.03 4.6 4.5 0 3.682-2.438 6.517-4.739 8.302a25.175 25.175 0 01-4.244 2.673 15.247 15.247 0 01-.383.173l-.022.009-.007.003-.003.001a.75.75 0 01-.592 0l-.003-.001z" />
                               </svg>
@@ -324,7 +376,7 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500">No poems available yet.</p>
+                <p className="text-gray-500 dark:text-gray-400">No poems available yet.</p>
               )}
             </div>
           )}
@@ -332,19 +384,21 @@ export default function AdminDashboard() {
           {activeTab === 'feedback' && (
             <div>
               <div className="mb-6">
-                <label htmlFor="poemFilter" className="block text-sm font-medium text-gray-700 mb-1">
-                  Filter by Poem
+                <label htmlFor="poemFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Filter by Content
                 </label>
                 <select
                   id="poemFilter"
                   value={selectedPoemId || ''}
                   onChange={(e) => setSelectedPoemId(e.target.value || null)}
-                  className="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="">All Poems</option>
+                  <option value="">All Content</option>
                   {poems.map((poem: any) => (
-                    <option key={poem._id} value={poem._id}>
-                      {poem.title}
+                    <option key={poem._id} value={poem._id} className="text-gray-900 dark:text-white">
+                      {poem.type === 'quote' 
+                        ? `[Quote] ${poem.content.substring(0, 50)}...` 
+                        : poem.title}
                     </option>
                   ))}
                 </select>
@@ -353,42 +407,46 @@ export default function AdminDashboard() {
               {feedbacks.length > 0 ? (
                 <div className="space-y-4">
                   {feedbacks.map((feedback: any) => (
-                    <div key={feedback._id} className="border rounded-md p-4 hover:bg-gray-50">
+                    <div key={feedback._id} className="border border-gray-200 dark:border-gray-700 rounded-md p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-lg font-medium text-gray-800">
+                          <h3 className="text-lg font-medium text-gray-800 dark:text-white">
                             {feedback.anonymous ? 'Anonymous' : feedback.name || 'Unnamed'}
                           </h3>
                           {!feedback.anonymous && feedback.email && (
-                            <p className="text-gray-600 text-sm">{feedback.email}</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm">{feedback.email}</p>
                           )}
                           {!feedback.anonymous && feedback.phone && (
-                            <p className="text-gray-600 text-sm">{feedback.phone}</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm">{feedback.phone}</p>
                           )}
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {new Date(feedback.createdAt).toLocaleDateString()}
                           </div>
                           <button
                             onClick={() => handleDeleteFeedback(feedback._id)}
                             disabled={isDeletingFeedback}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
                             title="Delete feedback"
                           >
                             Delete
                           </button>
                         </div>
                       </div>
-                      <p className="mt-3 text-gray-700">{feedback.message}</p>
-                      <div className="mt-2 text-sm text-indigo-600">
-                        For: {typeof feedback.poemId === 'object' && feedback.poemId ? feedback.poemId.title : 'Unknown Poem'}
+                      <p className="mt-3 text-gray-700 dark:text-gray-200">{feedback.message}</p>
+                      <div className="mt-2 text-sm text-indigo-600 dark:text-indigo-400">
+                        For: {typeof feedback.poemId === 'object' && feedback.poemId 
+                          ? feedback.poemId.type === 'quote'
+                            ? `[Quote] ${feedback.poemId.content.substring(0, 50)}...`
+                            : feedback.poemId.title
+                          : 'Unknown Content'}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500">No feedback available yet.</p>
+                <p className="text-gray-500 dark:text-gray-400">No feedback available yet.</p>
               )}
             </div>
           )}

@@ -18,18 +18,31 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { title, content, author } = await request.json();
+    const { title, content, author, type } = await request.json();
     
-    if (!title || !content) {
-      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
+    if (!content) {
+      return NextResponse.json({ error: 'Content is required' }, { status: 400 });
     }
     
+    if (type !== 'quote' && !title) {
+      return NextResponse.json({ error: 'Title is required for poems' }, { status: 400 });
+    }
+    
+    const validType = type === 'quote' ? 'quote' : 'poem';
+    
     await connectToDatabase();
-    const poem = new Poem({ 
-      title, 
+    
+    const poemData: any = { 
       content, 
-      author: author || 'Anonymous' 
-    });
+      author: author || 'Anonymous',
+      type: validType
+    };
+    
+    if (validType === 'poem' && title) {
+      poemData.title = title;
+    }
+    
+    const poem = new Poem(poemData);
     await poem.save();
     
     return NextResponse.json(poem, { status: 201 });

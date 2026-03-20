@@ -1,13 +1,11 @@
 import Link from 'next/link';
-import PoemCard from '@/components/PoemCard';
+import ContentTabs from '@/components/ContentTabs';
 import PoemDeepLink from '@/components/PoemDeepLink';
 
-// Ensure fresh data; likes should reflect quickly
 export const dynamic = 'force-dynamic';
 
 async function getPoems() {
   try {
-    // Use absolute URL with proper configuration for static generation
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://poetbyte.vercel.app';
     const url = new URL('/api/poems', baseUrl);
     
@@ -28,7 +26,7 @@ async function getPoems() {
 }
 
 export default async function Home() {
-  const poems: any[] = await getPoems();
+  const poems = await getPoems();
 
   return (
     <div className="container mx-auto px-4 py-12 animate-fade-in">
@@ -37,23 +35,15 @@ export default async function Home() {
       </h1>
 
       {Array.isArray(poems) && poems.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {poems.map((poem: any, index: number) => (
-            <PoemCard 
-              key={poem._id} 
-              poem={poem} 
-              index={index} 
-            />
-          ))}
-        </div>
+        <ContentTabs initialPoems={poems} />
       ) : (
         <div className="text-center py-16 animate-fade-in max-w-md mx-auto">
           <div className="card p-8">
             <p className="text-2xl font-semibold mb-4 text-[var(--primary)]">
-              No poems available yet.
+              No content available yet.
             </p>
             <p className="mb-8 opacity-80">
-              Visit the admin dashboard to add your first poem!
+              Visit the admin dashboard to add your first poem or quote!
             </p>
             <Link
               href="/admin"

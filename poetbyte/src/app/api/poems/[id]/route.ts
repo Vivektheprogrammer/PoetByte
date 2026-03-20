@@ -45,8 +45,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid poem ID' }, { status: 400 });
     }
 
-    const { title, content, author } = await request.json();
-    if (!title && !content && !author) {
+    const { title, content, author, type } = await request.json();
+    if (!title && !content && !author && !type) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }
 
@@ -55,6 +55,7 @@ export async function PATCH(
     if (typeof title === 'string') update.title = title;
     if (typeof content === 'string') update.content = content;
     if (typeof author === 'string') update.author = author;
+    if (type === 'poem' || type === 'quote') update.type = type;
 
     const poem = await Poem.findByIdAndUpdate(id, update, { new: true });
     if (!poem) {
