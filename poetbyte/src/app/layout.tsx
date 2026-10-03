@@ -31,7 +31,7 @@ export default function RootLayout({
             <div className="container mx-auto px-4 text-center">
               <p>
                 <a
-                  href="https://www.linkedin.com/in/vivek-r-626b16217"
+                  href="https://vivekr.vercel.app/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block text-lg font-semibold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent hover:opacity-90 transition-opacity"

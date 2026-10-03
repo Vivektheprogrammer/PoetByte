@@ -1,24 +1,17 @@
 import { notFound } from 'next/navigation';
+import FeedbackForm from '@/components/FeedbackForm';
+import connectToDatabase from '@/lib/mongodb';
+import Poem from '@/models/Poem';
 
 // Ensure this route is dynamic for fresh likes/content
 export const dynamic = 'force-dynamic';
-import FeedbackForm from '@/components/FeedbackForm';
 
 async function getPoem(id: string) {
   try {
-    // Use absolute URL with origin to avoid URL parsing errors
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const url = new URL(`/api/poems/${id}`, baseUrl);
-    
-    const res = await fetch(url.toString(), { 
-      cache: 'no-store',
-      // Add next.js fetch options to ensure proper handling
-      next: { revalidate: 0 }
-    });
-    if (!res.ok) {
-      return null;
-    }
-    return res.json();
+    await connectToDatabase();
+    const poem = await Poem.findById(id).lean();
+    if (!poem) return null;
+    return JSON.parse(JSON.stringify(poem));
   } catch (error) {
     console.error('Error fetching poem:', error);
     return null;
@@ -53,7 +46,17 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
           Posted on {new Date(poem.createdAt).toLocaleDateString()}
         </div>
-        <div className="text-sm mb-8">By <span className="text-[var(--accent)] font-medium">{poem.author || 'Unknown'}</span></div>
+        <div className="text-sm mb-8">
+          By{' '}
+          <a
+            href="https://vivekr.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--accent)] font-medium hover:underline hover:opacity-80 transition-opacity"
+          >
+            {poem.author || 'Unknown'}
+          </a>
+        </div>
         
         <FeedbackForm poemId={id} />
       </div>

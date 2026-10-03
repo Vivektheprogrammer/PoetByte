@@ -99,9 +99,15 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
           </div>
           <div className="mb-2 text-sm">
             <span className="text-[var(--accent)]">By</span>{' '}
-            <span className="text-[var(--accent)] font-medium">
+            <a
+              href="https://vivekr.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-[var(--accent)] font-medium hover:underline hover:opacity-80 transition-opacity"
+            >
               {poem.author || 'Unknown'}
-            </span>
+            </a>
           </div>
           <p className={`mb-4 flex-grow ${isQuote ? 'text-gray-700 dark:text-gray-200 italic font-serif text-lg' : 'text-gray-600 dark:text-gray-300'}`}>
             {isQuote ? `"${contentPreview}"` : contentPreview}

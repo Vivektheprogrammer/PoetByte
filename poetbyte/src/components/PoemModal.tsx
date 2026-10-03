@@ -141,7 +141,14 @@ export default function PoemModal({ poem, isOpen, onClose }: PoemModalProps) {
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.3, duration: 0.4 }}
                     >
-                      <span className="text-[var(--accent)] font-medium">~ {poem.author || 'Unknown'}</span>
+                      <a
+                        href="https://vivekr.vercel.app/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--accent)] font-medium hover:underline hover:opacity-80 transition-opacity"
+                      >
+                        ~ {poem.author || 'Unknown'}
+                      </a>
                     </motion.div>
                   </div>
                 ) : (
@@ -161,7 +168,15 @@ export default function PoemModal({ poem, isOpen, onClose }: PoemModalProps) {
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.2, duration: 0.4 }}
                     >
-                      By <span className="text-[var(--accent)] font-medium">{poem.author || 'Unknown'}</span>
+                      By{' '}
+                      <a
+                        href="https://vivekr.vercel.app/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--accent)] font-medium hover:underline hover:opacity-80 transition-opacity"
+                      >
+                        {poem.author || 'Unknown'}
+                      </a>
                     </motion.div>
                     
                     <div className="space-y-8 mb-8 max-w-none">

@@ -1,24 +1,16 @@
 import Link from 'next/link';
 import ContentTabs from '@/components/ContentTabs';
 import PoemDeepLink from '@/components/PoemDeepLink';
+import connectToDatabase from '@/lib/mongodb';
+import Poem from '@/models/Poem';
 
 export const dynamic = 'force-dynamic';
 
 async function getPoems() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://poetbyte.vercel.app';
-    const url = new URL('/api/poems', baseUrl);
-    
-    const res = await fetch(url.toString(), {
-      cache: 'no-store'
-    });
-
-    if (!res.ok) {
-      console.error('Failed to fetch poems with status:', res.status);
-      throw new Error('Failed to fetch poems');
-    }
-
-    return res.json();
+    await connectToDatabase();
+    const poems = await Poem.find({}).sort({ createdAt: -1 }).lean();
+    return JSON.parse(JSON.stringify(poems));
   } catch (error) {
     console.error('Error fetching poems:', error);
     return [];
