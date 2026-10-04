@@ -1,26 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Updated Turbopack configuration for Next.js 15+
-  turbopack: {
-    // Turbopack configuration options
-  },
-  // Enable static image imports
+  // Turbopack configuration options
+  turbopack: {},
+  // Enable image remote patterns
   images: {
-    domains: ['via.placeholder.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
   // Ensure MongoDB ObjectId serialization works properly
   webpack: (config) => {
-    // This helps ensure proper serialization of MongoDB ObjectIds
     config.experiments = { ...config.experiments, topLevelAwait: true };
     return config;
   },
   // Configure static generation
   output: 'standalone',
-  // Disable strict mode for dynamic server usage errors
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose'],
-    missingSuspenseWithCSRBailout: false,
-  },
+  // Server external packages for Mongoose / MongoDB
+  serverExternalPackages: ['mongoose'],
 };
 
 module.exports = nextConfig;

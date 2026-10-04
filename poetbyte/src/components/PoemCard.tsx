@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import PoemModal from './PoemModal';
-import { FaArrowRight, FaShareAlt, FaQuoteLeft } from 'react-icons/fa';
+import { FaArrowRight, FaShareNodes, FaQuoteLeft, FaFeatherPointed, FaCopy, FaCheck, FaBookOpen } from 'react-icons/fa6';
+import { isPoemLiked, setPoemLiked } from '@/lib/likes';
 
 interface PoemCardProps {
   poem: any;
@@ -12,133 +13,271 @@ interface PoemCardProps {
 
 export default function PoemCard({ poem, index }: PoemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const [isLiked, setIsLiked] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
   const isQuote = poem.type === 'quote';
-  
+
+  // Sync like state from localStorage and listen to cross-component changes
+  useEffect(() => {
+    if (!poem?._id) return;
+    setIsLiked(isPoemLiked(poem._id));
+
+    const handleLikeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ poemId: string; liked: boolean }>;
+      if (customEvent.detail?.poemId === poem._id.toString()) {
+        setIsLiked(customEvent.detail.liked);
+      }
+    };
+
+    window.addEventListener('poetbyte_like_change', handleLikeChange);
+    return () => {
+      window.removeEventListener('poetbyte_like_change', handleLikeChange);
+    };
+  }, [poem?._id]);
+
+  // 3D Tilt Mouse tracking with smooth springs
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 25 });
+  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 25 });
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['12deg', '-12deg']);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-12deg', '12deg']);
+  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], ['0%', '100%']);
+  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], ['0%', '100%']);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left) / rect.width - 0.5;
+    const mouseY = (e.clientY - rect.top) / rect.height - 0.5;
+    x.set(mouseX);
+    y.set(mouseY);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
-  const sharePoem = async () => {
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newLiked = !isLiked;
+    setIsLiked(newLiked);
+    setPoemLiked(poem._id, newLiked);
+
+    try {
+      await fetch('/api/poems/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          poemId: poem._id,
+          action: newLiked ? 'like' : 'unlike',
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to update like status:', err);
+    }
+  };
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const textToCopy = `${poem.title ? poem.title + '\n\n' : ''}${poem.content}\n\n— ${poem.author || 'Vivek R'}\nRead on PoetByte Anthology`;
+      await navigator.clipboard.writeText(textToCopy);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
+  };
+
+  const sharePoem = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       const envBase = typeof process !== 'undefined' ? (process as any).env?.NEXT_PUBLIC_BASE_URL : undefined;
       const origin = envBase || (typeof window !== 'undefined' ? window.location.origin : '');
       const url = `${origin}/?poem=${poem._id}`;
       const shareData = {
         title: poem.title || (isQuote ? 'Quote' : 'Poem'),
-        text: `Check out this ${isQuote ? 'quote' : 'poem'}${poem.author ? ' by ' + poem.author : ''}: ${poem.title}`,
+        text: `“${poem.title || (isQuote ? 'Quote' : 'Poem')}” by ${poem.author || 'Vivek R'}:`,
         url,
-      } as ShareData;
+      };
 
-      if (typeof navigator !== 'undefined' && (navigator as any).share) {
-        try {
-          const canShare = typeof (navigator as any).canShare === 'function' ? (navigator as any).canShare(shareData) : true;
-          if (canShare) {
-            await (navigator as any).share(shareData);
-            return;
-          }
-        } catch (err: any) {
-          const name = err?.name || '';
-          if (name === 'AbortError' || name === 'NotAllowedError') return;
-        }
-      }
-
-      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard');
-        return;
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
       }
-
-      if (typeof window !== 'undefined') {
-        window.open(url, '_blank');
-      }
-    } catch (e) {
-      console.error('Share failed', e);
-      if (typeof window !== 'undefined') {
-        const envBase = (process as any).env?.NEXT_PUBLIC_BASE_URL || window.location.origin;
-        const url = `${envBase}/?poem=${poem._id}`;
-        window.prompt('Copy this link:', url);
-      }
+    } catch (err) {
+      console.error('Share failed', err);
     }
   };
-  
-  const contentPreview = poem.content.length > 150
-    ? `${poem.content.substring(0, 150)}...`
-    : poem.content;
+
+  const contentPreview =
+    poem.content.length > 160
+      ? `${poem.content.substring(0, 160)}...`
+      : poem.content;
 
   return (
     <>
-      <motion.div
-        className={`card p-5 sm:p-6 cursor-pointer hover-lift backdrop-blur-sm rounded-xl h-full transition-all ${
-          isQuote 
-            ? 'bg-gradient-to-br from-amber-50/80 to-orange-50/80 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30' 
-            : 'bg-white/80 dark:bg-gray-800/80 border-gray-100 dark:border-gray-700/30'
-        }`}
-        whileHover={{ 
-          y: -8, 
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
-        }}
-        whileTap={{ scale: 0.98 }}
-        onClick={openModal}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ 
-          duration: 0.5, 
-          delay: Math.min(index * 0.08, 0.4),
-          ease: 'easeInOut'
-        }}
-      >
-        <div className="flex flex-col h-full">
-          <div className="flex items-center gap-2 mb-2">
-            {isQuote && (
-              <FaQuoteLeft className="text-amber-500 dark:text-amber-400" size={18} />
-            )}
-            {!isQuote && poem.title && (
-              <h2 className="text-xl font-semibold text-[var(--primary)]">
-                {poem.title}
-              </h2>
-            )}
-          </div>
-          <div className="mb-2 text-sm">
-            <span className="text-[var(--accent)]">By</span>{' '}
-            <a
-              href="https://vivekr.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="text-[var(--accent)] font-medium hover:underline hover:opacity-80 transition-opacity"
-            >
-              {poem.author || 'Unknown'}
-            </a>
-          </div>
-          <p className={`mb-4 flex-grow ${isQuote ? 'text-gray-700 dark:text-gray-200 italic font-serif text-lg' : 'text-gray-600 dark:text-gray-300'}`}>
-            {isQuote ? `"${contentPreview}"` : contentPreview}
-          </p>
-          <div className="mt-auto flex items-center justify-between">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); void sharePoem(); }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              aria-label={`Share ${isQuote ? 'quote' : 'poem'}`}
-            >
-              <FaShareAlt size={14} />
-              <span className="text-sm">Share</span>
-            </button>
-            <div className="inline-flex items-center text-[var(--primary)] font-medium group">
-              <span className="mr-2">{isQuote ? 'Read Quote' : 'Read More'}</span>
-              <motion.div
-                whileHover={{ x: 5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <FaArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-300" />
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+      <div className="perspective-1200 w-full h-full">
+        <motion.div
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onClick={openModal}
+          style={{
+            rotateX,
+            rotateY,
+            transformStyle: 'preserve-3d',
+          }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.6,
+            delay: Math.min(index * 0.07, 0.4),
+            ease: 'easeOut',
+          }}
+          whileHover={{ scale: 1.02 }}
+          className={`relative group h-full rounded-2xl p-6 sm:p-7 cursor-pointer select-none overflow-hidden transition-all duration-500 parchment-panel border border-[#dfa84a]/30 shadow-[0_15px_35px_-5px_rgba(0,0,0,0.7)] hover:shadow-[0_20px_45px_-5px_rgba(223,168,74,0.25)] hover:border-[#dfa84a]/60`}
+        >
+          {/* Candlelight Glare Reflection */}
+          <motion.div
+            className="pointer-events-none absolute -inset-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+            style={{
+              background: 'radial-gradient(circle 300px at 50% 50%, rgba(249,226,157,0.8), transparent 70%)',
+              left: glareX,
+              top: glareY,
+            }}
+          />
 
-      <PoemModal 
-        poem={poem} 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
+          {/* Ornate Corner Markers */}
+          <span className="absolute top-2.5 left-3 text-[#dfa84a] text-xs opacity-60">❧</span>
+          <span className="absolute top-2.5 right-3 text-[#dfa84a] text-xs opacity-60">❧</span>
+          <span className="absolute bottom-2.5 left-3 text-[#dfa84a] text-xs opacity-60 rotate-180">❧</span>
+          <span className="absolute bottom-2.5 right-3 text-[#dfa84a] text-xs opacity-60 rotate-180">❧</span>
+
+          {/* Card Inner Content */}
+          <div className="flex flex-col h-full relative z-10 space-y-4 preserve-3d">
+            
+            {/* Top Bar */}
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-serif font-bold uppercase tracking-wider bg-[#2a1b12] text-[#f9e29d] border border-[#dfa84a]/30">
+                {isQuote ? <FaQuoteLeft size={10} /> : <FaBookOpen size={10} />}
+                <span>{isQuote ? 'Quote' : 'Folio Verse'}</span>
+              </span>
+
+              <div className="flex items-center gap-1.5 text-[#b8a690]">
+                {/* 3D Wax Seal Like / Stamp Button */}
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.88 }}
+                  onClick={handleLike}
+                  title={isLiked ? "Wax Sealed" : "Stamp Wax Seal"}
+                  className="relative p-1 rounded-full flex items-center justify-center transition-all focus:outline-none"
+                >
+                  {/* Expanding Molten Wax Aura Ripple on click */}
+                  {isLiked && (
+                    <span className="absolute inset-0 rounded-full border border-[#dfa84a] animate-wax-ripple pointer-events-none" />
+                  )}
+
+                  {isLiked ? (
+                    /* Sealed 3D Royal Crimson Wax Stamp */
+                    <span className="animate-wax-stamp relative w-6 h-6 rounded-[48%_52%_49%_51%/52%_48%_53%_47%] bg-gradient-to-br from-[#991b1b] via-[#be123c] to-[#7f1d1d] flex items-center justify-center border border-[#dfa84a]/80 shadow-[0_2px_8px_rgba(153,27,27,0.8),inset_0_1px_2px_rgba(255,255,255,0.4)]">
+                      <FaFeatherPointed className="text-[#f9e29d] text-[9px] drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]" />
+                    </span>
+                  ) : (
+                    /* Unsealed Brass Stamp Matrix Ring */
+                    <span className="w-6 h-6 rounded-full border border-dashed border-[#dfa84a]/50 flex items-center justify-center bg-[#231710]/80 hover:bg-[#342217] hover:border-[#dfa84a] text-[#dfa84a]/70 hover:text-[#f9e29d] transition-all shadow-inner">
+                      <span className="w-2 h-2 rounded-full border border-[#dfa84a]/40 group-hover:scale-125 transition-transform" />
+                    </span>
+                  )}
+                </motion.button>
+
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  title="Copy Verse"
+                  className="p-2 rounded-full hover:bg-[#342217] hover:text-[#f9e29d] transition-colors"
+                >
+                  {isCopied ? <FaCheck className="text-amber-400" size={13} /> : <FaCopy size={13} />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={sharePoem}
+                  title="Dispatch Link"
+                  className="p-2 rounded-full hover:bg-[#342217] hover:text-[#f9e29d] transition-colors"
+                >
+                  <FaShareNodes size={13} />
+                </button>
+              </div>
+            </div>
+
+            {/* Title / Quote Glyph */}
+            <div>
+              {isQuote ? (
+                <div className="text-[#dfa84a] text-2xl font-serif">“</div>
+              ) : (
+                <h3 className="text-xl sm:text-2xl font-serif font-bold gold-foil-text tracking-normal leading-snug group-hover:text-[#f9e29d] transition-colors">
+                  {poem.title || 'Untitled Verse'}
+                </h3>
+              )}
+            </div>
+
+            {/* Excerpt Body */}
+            <div className="flex-grow">
+              <p
+                className={`font-serif leading-relaxed ${
+                  isQuote
+                    ? 'italic text-lg text-[#f9e29d]/90'
+                    : 'text-[#f7eedb] text-base font-normal'
+                }`}
+              >
+                {isQuote ? `"${contentPreview}"` : contentPreview}
+              </p>
+            </div>
+
+            {/* Signature & Read Link */}
+            <div className="pt-3 border-t border-[#dfa84a]/20 flex items-center justify-between text-xs sm:text-sm font-serif">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#786a58] italic">Penned by</span>
+                <a
+                  href="https://vivekr.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-semibold text-[#f9e29d] hover:text-[#dfa84a] hover:underline transition-colors"
+                >
+                  {poem.author || 'Vivek R'}
+                </a>
+              </div>
+
+              <div className="inline-flex items-center gap-1.5 text-[#dfa84a] font-bold group-hover:text-[#f9e29d] group-hover:translate-x-1 transition-all duration-300">
+                <span>{isQuote ? 'Open Scroll' : 'Read In Book'}</span>
+                <FaArrowRight size={11} />
+              </div>
+            </div>
+
+          </div>
+        </motion.div>
+      </div>
+
+      {/* 3D Grimoire Modal */}
+      <PoemModal
+        poem={poem}
+        isOpen={isModalOpen}
+        onClose={closeModal}
       />
     </>
   );
