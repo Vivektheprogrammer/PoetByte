@@ -27,6 +27,13 @@ export default async function Home() {
       {/* Vintage Quill & Inkpot Hero Scene */}
       <Hero3DScene />
 
+      {/* Semantic Accessible Text for Search Crawlers & Google Indexing */}
+      <section className="sr-only" aria-label="Prologue Inscription by Vivek R">
+        <h2>Writing is an art where the soul finds its voice, turning unspoken emotions into words and silent thoughts into poetry.</h2>
+        <p>A personal poetry anthology and literary sanctuary penned by Vivek R.</p>
+        <a href="https://vivekr.vercel.app/">Vivek R Portfolio</a>
+      </section>
+
       {/* Main Sanctuary Catalog */}
       <div className="container mx-auto px-4 max-w-7xl">
         {Array.isArray(poems) && poems.length > 0 ? (

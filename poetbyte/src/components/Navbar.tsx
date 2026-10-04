@@ -31,9 +31,8 @@ export default function Navbar() {
               <FaFeatherPointed className="group-hover:rotate-12 transition-transform duration-300" size={17} />
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl font-serif font-black tracking-tight text-[#f9e29d] flex items-center gap-1.5">
+              <span className="text-2xl font-serif font-black tracking-tight text-[#f9e29d]">
                 Poet<span className="gold-foil-text">Byte</span>
-                <span className="text-[#dfa84a] text-xs">❧</span>
               </span>
               <span className="text-[10px] uppercase tracking-[0.25em] text-[#dfa84a] font-serif font-semibold -mt-1">
                 Poetry Anthology
