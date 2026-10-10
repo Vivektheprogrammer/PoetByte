@@ -51,9 +51,10 @@ function RoyalWaxSeal({ isStamped }: { isStamped: boolean }) {
 
 interface PoemDetailViewProps {
   poem: any;
+  relatedPoems?: any[];
 }
 
-export default function PoemDetailView({ poem }: PoemDetailViewProps) {
+export default function PoemDetailView({ poem, relatedPoems = [] }: PoemDetailViewProps) {
   const [liked, setLiked] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -295,6 +296,46 @@ export default function PoemDetailView({ poem }: PoemDetailViewProps) {
         </div>
 
       </div>
+
+      {/* Explore More Folios from the Sanctuary */}
+      {relatedPoems && relatedPoems.length > 0 && (
+        <div className="pt-6 space-y-6">
+          <div className="flex items-center justify-between border-b border-[#dfa84a]/20 pb-3">
+            <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#f9e29d]">
+              More Verses From The Sanctuary
+            </h2>
+            <Link
+              href="/"
+              className="text-xs sm:text-sm font-serif text-[#dfa84a] hover:underline"
+            >
+              Browse All Folios →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {relatedPoems.map((item: any) => (
+              <Link
+                key={item._id}
+                href={`/poems/${item._id}`}
+                className="group block p-5 rounded-2xl parchment-panel border border-[#dfa84a]/30 hover:border-[#dfa84a]/70 hover:shadow-lg transition-all space-y-2"
+              >
+                <span className="text-[10px] font-serif uppercase tracking-widest text-[#dfa84a] font-bold">
+                  {item.type === 'quote' ? 'Quote' : 'Folio'}
+                </span>
+                <h3 className="font-serif font-bold text-base text-[#f7eedb] group-hover:text-[#f9e29d] line-clamp-1 transition-colors">
+                  {item.title || (item.type === 'quote' ? `"${item.content.substring(0, 30)}..."` : 'Untitled Verse')}
+                </h3>
+                <p className="text-xs text-[#b8a690] line-clamp-2 italic font-serif">
+                  {item.content}
+                </p>
+                <div className="text-[11px] text-[#dfa84a] font-semibold pt-1">
+                  Read Verse →
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

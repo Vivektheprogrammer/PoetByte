@@ -59,6 +59,20 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
+async function getRelatedPoems(currentId: string) {
+  try {
+    await connectToDatabase();
+    const poems = await Poem.find({ _id: { $ne: currentId } })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+    return JSON.parse(JSON.stringify(poems));
+  } catch (error) {
+    console.error('Error fetching related poems:', error);
+    return [];
+  }
+}
+
 export default async function PoemPage({ params }: { params: { id: string } }) {
   const { id } = await Promise.resolve(params);
   const poem = await getPoem(id);
@@ -66,6 +80,8 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
   if (!poem) {
     notFound();
   }
+
+  const relatedPoems = await getRelatedPoems(id);
 
   const poemJsonLd = {
     '@context': 'https://schema.org',
@@ -92,7 +108,7 @@ export default async function PoemPage({ params }: { params: { id: string } }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(poemJsonLd) }}
       />
-      <PoemDetailView poem={poem} />
+      <PoemDetailView poem={poem} relatedPoems={relatedPoems} />
     </>
   );
 }

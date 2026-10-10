@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import PoemModal from './PoemModal';
 import { FaArrowRight, FaShareNodes, FaQuoteLeft, FaFeatherPointed, FaCopy, FaCheck, FaBookOpen } from 'react-icons/fa6';
@@ -101,9 +102,9 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
   const sharePoem = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const envBase = typeof process !== 'undefined' ? (process as any).env?.NEXT_PUBLIC_BASE_URL : undefined;
-      const origin = envBase || (typeof window !== 'undefined' ? window.location.origin : '');
-      const url = `${origin}/?poem=${poem._id}`;
+      const envBase = typeof process !== 'undefined' ? (process as any).env?.NEXT_PUBLIC_BASE_URL || (process as any).env?.NEXT_PUBLIC_SITE_URL : undefined;
+      const origin = envBase || (typeof window !== 'undefined' ? window.location.origin : 'https://poetbyte.vercel.app');
+      const url = `${origin}/poems/${poem._id}`;
       const shareData = {
         title: poem.title || (isQuote ? 'Quote' : 'Poem'),
         text: `“${poem.title || (isQuote ? 'Quote' : 'Poem')}” by ${poem.author || 'Vivek R'}:`,
@@ -230,7 +231,18 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
                 <div className="text-[#dfa84a] text-2xl font-serif">“</div>
               ) : (
                 <h3 className="text-xl sm:text-2xl font-serif font-bold gold-foil-text tracking-normal leading-snug group-hover:text-[#f9e29d] transition-colors">
-                  {poem.title || 'Untitled Verse'}
+                  <Link
+                    href={`/poems/${poem._id}`}
+                    onClick={(e) => {
+                      if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                        e.preventDefault();
+                        openModal();
+                      }
+                    }}
+                    className="hover:underline"
+                  >
+                    {poem.title || 'Untitled Verse'}
+                  </Link>
                 </h3>
               )}
             </div>
@@ -263,10 +275,19 @@ export default function PoemCard({ poem, index }: PoemCardProps) {
                 </a>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 text-[#dfa84a] font-bold group-hover:text-[#f9e29d] group-hover:translate-x-1 transition-all duration-300">
+              <Link
+                href={`/poems/${poem._id}`}
+                onClick={(e) => {
+                  if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                    e.preventDefault();
+                    openModal();
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 text-[#dfa84a] font-bold group-hover:text-[#f9e29d] group-hover:translate-x-1 transition-all duration-300"
+              >
                 <span>{isQuote ? 'Open Scroll' : 'Read In Book'}</span>
                 <FaArrowRight size={11} />
-              </div>
+              </Link>
             </div>
 
           </div>

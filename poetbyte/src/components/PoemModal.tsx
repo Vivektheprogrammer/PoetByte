@@ -178,9 +178,9 @@ export default function PoemModal({ poem, isOpen, onClose }: PoemModalProps) {
 
   const handleShare = async () => {
     try {
-      const envBase = typeof process !== 'undefined' ? (process as any).env?.NEXT_PUBLIC_BASE_URL : undefined;
-      const origin = envBase || (typeof window !== 'undefined' ? window.location.origin : '');
-      const url = `${origin}/?poem=${poem._id}`;
+      const envBase = typeof process !== 'undefined' ? (process as any).env?.NEXT_PUBLIC_BASE_URL || (process as any).env?.NEXT_PUBLIC_SITE_URL : undefined;
+      const origin = envBase || (typeof window !== 'undefined' ? window.location.origin : 'https://poetbyte.vercel.app');
+      const url = `${origin}/poems/${poem._id}`;
       const shareData = {
         title: poem.title || (poem.type === 'quote' ? 'Vintage Quote' : 'Anthology Poem'),
         text: `“${poem.title || (poem.type === 'quote' ? 'Quote' : 'Poem')}” penned by ${poem.author || 'Vivek R'}:`,

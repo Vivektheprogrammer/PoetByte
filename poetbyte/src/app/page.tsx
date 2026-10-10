@@ -32,6 +32,19 @@ export default async function Home() {
         <h2>Writing is an art where the soul finds its voice, turning unspoken emotions into words and silent thoughts into poetry.</h2>
         <p>A personal poetry anthology and literary sanctuary penned by Vivek R.</p>
         <a href="https://vivekr.vercel.app/">Vivek R Portfolio</a>
+        <nav aria-label="Manuscripts Index">
+          <h3>Anthology Directory</h3>
+          <ul>
+            {Array.isArray(poems) &&
+              poems.map((poem: any) => (
+                <li key={poem._id}>
+                  <Link href={`/poems/${poem._id}`}>
+                    {poem.title || 'Untitled Passage'} - {poem.author || 'Vivek R'}
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        </nav>
       </section>
 
       {/* Main Sanctuary Catalog */}
